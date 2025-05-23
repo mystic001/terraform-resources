@@ -48,6 +48,10 @@ jobs:
       id: init
       run: terraform init
       env:
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
         TF_VAR_client_secret: ${{ secrets.AZURE_CLIENT_SECRET }}
         TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -57,6 +61,10 @@ jobs:
       id: validate
       run: terraform validate -no-color
       env:
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
         TF_VAR_client_secret: ${{ secrets.AZURE_CLIENT_SECRET }}
         TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -68,6 +76,10 @@ jobs:
       run: terraform plan -no-color
       continue-on-error: true
       env:
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
         TF_VAR_client_secret: ${{ secrets.AZURE_CLIENT_SECRET }}
         TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
