@@ -42,4 +42,15 @@ variable "tenant_id" {
 variable "subscription_id" {
   description = "The Subscription ID for the Service Principal"
   type        = string
+}
+
+variable "vnet_name" {
+  description = "The name of the virtual network"
+  type        = string
+}
+
+variable "vnet_address_space" {
+  description = "The address space for the virtual network"
+  type        = list(string)
+  default     = ["10.100.0.0/16"]
 } 

@@ -63,3 +63,12 @@ resource "azurerm_resource_group" "main" {
 }
 
 # Add your Azure resources here 
+
+module "network" {
+  source              = "./modules/network"
+  vnet_name           = var.vnet_name
+  vnet_address_space  = var.vnet_address_space
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  tags                = var.tags
+} 

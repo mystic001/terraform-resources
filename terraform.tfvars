@@ -5,4 +5,5 @@ tags = {
   Environment = "dev"
   Project     = "Terraform Demo"
   ManagedBy   = "Terraform"
-} 
+}
+vnet_name = "my-vnet" 
