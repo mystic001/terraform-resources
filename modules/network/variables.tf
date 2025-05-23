@@ -22,4 +22,13 @@ variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)
   default     = {}
+}
+
+variable "subnets" {
+  description = "List of subnets to create"
+  type = list(object({
+    name             = string
+    address_prefixes = list(string)
+  }))
+  default = []
 } 

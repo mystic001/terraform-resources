@@ -6,23 +6,10 @@ resource "azurerm_virtual_network" "this" {
   tags                = var.tags
 }
 
-resource "azurerm_subnet" "first" {
-  name                 = "firstsubnet"
+resource "azurerm_subnet" "this" {
+  for_each             = { for subnet in var.subnets : subnet.name => subnet }
+  name                 = each.value.name
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.this.name
-  address_prefixes     = ["10.100.1.0/24"]
-}
-
-resource "azurerm_subnet" "second" {
-  name                 = "secondsubnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.this.name
-  address_prefixes     = ["10.100.2.0/24"]
-}
-
-resource "azurerm_subnet" "third" {
-  name                 = "thirdsubnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.this.name
-  address_prefixes     = ["10.100.3.0/24"]
+  address_prefixes     = each.value.address_prefixes
 } 

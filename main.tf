@@ -41,4 +41,19 @@ module "network" {
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   tags                = var.tags
+
+  subnets = [
+    {
+      name             = "firstsubnet"
+      address_prefixes = ["10.100.1.0/24"]
+    },
+    {
+      name             = "secondsubnet"
+      address_prefixes = ["10.100.2.0/24"]
+    },
+    {
+      name             = "thirdsubnet"
+      address_prefixes = ["10.100.3.0/24"]
+    }
+  ]
 } 
