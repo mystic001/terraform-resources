@@ -13,7 +13,6 @@ terraform {
     container_name       = "tfstate"
     key                  = "terraform.tfstate"
     use_oidc            = true
-    use_azure_cli_auth  = false
     client_id           = "env:ARM_CLIENT_ID"
     client_secret       = "env:ARM_CLIENT_SECRET"
     tenant_id           = "env:ARM_TENANT_ID"
