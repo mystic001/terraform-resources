@@ -67,4 +67,49 @@ This repository contains Terraform configurations for deploying Azure resources.
 
 ## License
 
-MIT 
+MIT
+
+## GitHub Actions Setup
+
+### Required Secrets
+
+Set up the following secrets in your GitHub repository (Settings > Secrets and variables > Actions):
+
+1. `AZURE_CLIENT_ID`: Azure service principal client ID
+2. `AZURE_CLIENT_SECRET`: Azure service principal client secret
+3. `AZURE_SUBSCRIPTION_ID`: Azure subscription ID
+4. `AZURE_TENANT_ID`: Azure tenant ID
+
+### Creating Azure Service Principal
+
+1. Install Azure CLI
+2. Login to Azure:
+   ```bash
+   az login
+   ```
+3. Create service principal:
+   ```bash
+   az ad sp create-for-rbac --name "terraform-github-actions" --role contributor \
+                           --scopes /subscriptions/<subscription_id> \
+                           --sdk-auth
+   ```
+4. Copy the output and use it to set up the secrets in GitHub
+
+### Environment Protection Rules
+
+1. Go to repository Settings > Environments
+2. Create a new environment named 'production'
+3. Add protection rules:
+   - Required reviewers
+   - Wait timer
+   - Branch protection rules
+
+## Workflow Features
+
+- Runs on PR to main branch
+- Runs on push to main branch
+- Performs Terraform format check
+- Validates Terraform configuration
+- Creates plan for PR review
+- Applies changes when merged to main
+- Comments plan results on PR 
