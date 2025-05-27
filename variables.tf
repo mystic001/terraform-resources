@@ -5,7 +5,7 @@ variable "location" {
 }
 
 variable "environment" {
-  description = "The environment (dev, staging, prod)"
+  description = "Environment name (e.g., dev, prod)"
   type        = string
   default     = "dev"
 }

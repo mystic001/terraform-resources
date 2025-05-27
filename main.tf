@@ -4,6 +4,14 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.0"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
   required_version = ">= 1.0"
 
@@ -30,6 +38,65 @@ resource "azurerm_resource_group" "main" {
   name     = var.resource_group_name
   location = var.location
   tags     = var.tags
+}
+
+# Generate SSH key
+resource "tls_private_key" "ssh" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+# Store the private key in Azure Key Vault (optional but recommended)
+resource "azurerm_key_vault_secret" "ssh_private_key" {
+  name         = "ssh-private-key"
+  value        = tls_private_key.ssh.private_key_pem
+  key_vault_id = azurerm_key_vault.main.id
+}
+
+# Store the public key in Azure Key Vault (optional but recommended)
+resource "azurerm_key_vault_secret" "ssh_public_key" {
+  name         = "ssh-public-key"
+  value        = tls_private_key.ssh.public_key_openssh
+  key_vault_id = azurerm_key_vault.main.id
+}
+
+# Create Key Vault
+resource "azurerm_key_vault" "main" {
+  name                        = "kv-${var.environment}-${random_string.suffix.result}"
+  location                    = azurerm_resource_group.main.location
+  resource_group_name         = azurerm_resource_group.main.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = var.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+  sku_name                   = "standard"
+
+  access_policy {
+    tenant_id = var.tenant_id
+    object_id = var.client_id
+
+    key_permissions = [
+      "Get",
+      "List",
+      "Create",
+      "Delete",
+      "Update",
+    ]
+
+    secret_permissions = [
+      "Get",
+      "List",
+      "Set",
+      "Delete",
+    ]
+  }
+}
+
+# Generate random suffix for unique names
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
 }
 
 # Add your Azure resources here 
@@ -70,7 +137,7 @@ module "vm" {
     name                  = "my-vm"
     size                  = "Standard_B1s"
     admin_username       = "adminuser"
-    admin_ssh_public_key = var.ssh_public_key
+    admin_ssh_public_key = tls_private_key.ssh.public_key_openssh
     subnet_name          = "firstsubnet"
     os_disk_type         = "Standard_LRS"
     os_disk_size_gb      = 30
@@ -81,4 +148,15 @@ module "vm" {
   }
 
   tags = var.tags
+}
+
+# Output the private key (be careful with this in production)
+output "private_key" {
+  value     = tls_private_key.ssh.private_key_pem
+  sensitive = true
+}
+
+# Output the public key
+output "public_key" {
+  value = tls_private_key.ssh.public_key_openssh
 }
