@@ -53,10 +53,4 @@ variable "vnet_address_space" {
   description = "The address space for the virtual network"
   type        = list(string)
   default     = ["10.100.0.0/16"]
-}
-
-variable "ssh_public_key" {
-  description = "SSH public key for VM authentication"
-  type        = string
-  sensitive   = true
 } 
