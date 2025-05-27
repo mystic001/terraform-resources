@@ -40,33 +40,8 @@ resource "azurerm_resource_group" "main" {
   tags     = var.tags
 }
 
-# Generate SSH key
-resource "tls_private_key" "ssh" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-# Store the private key in Azure Key Vault (optional but recommended)
-resource "azurerm_key_vault_secret" "ssh_private_key" {
-  name         = "ssh-private-key"
-  value        = tls_private_key.ssh.private_key_pem
-  key_vault_id = azurerm_key_vault.main.id
-}
-
-# Store the public key in Azure Key Vault (optional but recommended)
-resource "azurerm_key_vault_secret" "ssh_public_key" {
-  name         = "ssh-public-key"
-  value        = tls_private_key.ssh.public_key_openssh
-  key_vault_id = azurerm_key_vault.main.id
-}
-
 # Get the current service principal
 data "azurerm_client_config" "current" {}
-
-# Verify service principal permissions
-data "azurerm_role_definition" "key_vault_admin" {
-  name = "Key Vault Administrator"
-}
 
 # Create Key Vault
 resource "azurerm_key_vault" "main" {
@@ -79,64 +54,80 @@ resource "azurerm_key_vault" "main" {
   purge_protection_enabled    = true
   sku_name                   = "premium"
 
-  # Enable RBAC authorization
-  enable_rbac_authorization = true
+  # Use access policies instead of RBAC
+  enable_rbac_authorization = false
 
   network_acls {
     default_action = "Allow"  # Temporarily allow all access for setup
     bypass         = "AzureServices"
   }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Get",
+      "List",
+      "Create",
+      "Delete",
+      "Update",
+      "Import",
+      "Backup",
+      "Restore",
+      "Recover",
+      "Purge"
+    ]
+
+    secret_permissions = [
+      "Get",
+      "List",
+      "Set",
+      "Delete",
+      "Backup",
+      "Restore",
+      "Recover",
+      "Purge"
+    ]
+
+    certificate_permissions = [
+      "Get",
+      "List",
+      "Create",
+      "Delete",
+      "Update",
+      "Import",
+      "Backup",
+      "Restore",
+      "Recover",
+      "Purge"
+    ]
+  }
 }
 
-# Add RBAC role assignment for the service principal
-resource "azurerm_role_assignment" "key_vault_administrator" {
-  scope                = azurerm_key_vault.main.id
-  role_definition_name = "Key Vault Administrator"
-  principal_id         = data.azurerm_client_config.current.object_id
+# Generate SSH key
+resource "tls_private_key" "ssh" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
 }
 
-# Add explicit access policy for the service principal
-resource "azurerm_key_vault_access_policy" "service_principal" {
+# Store the private key in Azure Key Vault
+resource "azurerm_key_vault_secret" "ssh_private_key" {
+  name         = "ssh-private-key"
+  value        = tls_private_key.ssh.private_key_pem
   key_vault_id = azurerm_key_vault.main.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
+}
 
-  key_permissions = [
-    "Get",
-    "List",
-    "Create",
-    "Delete",
-    "Update",
-    "Import",
-    "Backup",
-    "Restore",
-    "Recover",
-    "Purge"
-  ]
+# Store the public key in Azure Key Vault
+resource "azurerm_key_vault_secret" "ssh_public_key" {
+  name         = "ssh-public-key"
+  value        = tls_private_key.ssh.public_key_openssh
+  key_vault_id = azurerm_key_vault.main.id
+}
 
-  secret_permissions = [
-    "Get",
-    "List",
-    "Set",
-    "Delete",
-    "Backup",
-    "Restore",
-    "Recover",
-    "Purge"
-  ]
-
-  certificate_permissions = [
-    "Get",
-    "List",
-    "Create",
-    "Delete",
-    "Update",
-    "Import",
-    "Backup",
-    "Restore",
-    "Recover",
-    "Purge"
-  ]
+# Verify service principal permissions
+data "azurerm_role_definition" "key_vault_admin" {
+  name = "Key Vault Administrator"
 }
 
 # Generate random suffix for unique names
