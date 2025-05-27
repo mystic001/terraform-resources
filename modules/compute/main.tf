@@ -22,6 +22,11 @@ resource "azurerm_network_interface" "this" {
   tags = var.tags
 }
 
+locals {
+  # Ensure the SSH key is in the correct format
+  ssh_public_key = replace(trimspace(var.vm_config.admin_ssh_public_key), "\n", "")
+}
+
 resource "azurerm_linux_virtual_machine" "this" {
   name                = var.vm_config.name
   resource_group_name = var.resource_group_name
@@ -36,7 +41,7 @@ resource "azurerm_linux_virtual_machine" "this" {
 
   admin_ssh_key {
     username   = var.vm_config.admin_username
-    public_key = trimspace(var.vm_config.admin_ssh_public_key)
+    public_key = local.ssh_public_key
   }
 
   os_disk {

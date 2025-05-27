@@ -251,3 +251,9 @@ output "ansible_vm_connection_info" {
   }
   sensitive = true
 }
+
+# Debug output for SSH key
+output "debug_ssh_key" {
+  value     = var.ssh_public_key
+  sensitive = true
+}
