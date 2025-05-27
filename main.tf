@@ -62,15 +62,15 @@ module "network" {
 module "vm" {
   source = "./modules/compute"
 
-  resource_group_name = "my-rg"
-  location           = "eastus"
-  subnet_id          = module.network.azurerm_subnet.this["firstsubnet"].id
+  resource_group_name = azurerm_resource_group.main.name
+  location           = azurerm_resource_group.main.location
+  subnet_id          = module.network.subnet_ids["firstsubnet"]
 
   vm_config = {
     name                  = "my-vm"
     size                  = "Standard_B1s"
     admin_username       = "adminuser"
-    admin_ssh_public_key = file("~/.ssh/id_rsa.pub")  # Path to your public SSH key
+    admin_ssh_public_key = var.ssh_public_key
     subnet_name          = "firstsubnet"
     os_disk_type         = "Standard_LRS"
     os_disk_size_gb      = 30
@@ -80,7 +80,5 @@ module "vm" {
     image_version        = "latest"
   }
 
-  tags = {
-    Environment = "Development"
-  }
+  tags = var.tags
 }
