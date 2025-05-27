@@ -25,7 +25,7 @@ terraform {
 
 provider "azurerm" {
   features {}
-  use_cli = false
+  use_cli         = false
   client_id       = var.client_id
   client_secret   = var.client_secret
   tenant_id       = var.tenant_id
@@ -69,7 +69,7 @@ resource "azurerm_key_vault" "main" {
   tenant_id                   = var.tenant_id
   soft_delete_retention_days  = 7
   purge_protection_enabled    = false
-  sku_name                   = "standard"
+  sku_name                    = "standard"
 
   access_policy {
     tenant_id = var.tenant_id
@@ -123,19 +123,19 @@ module "network" {
       address_prefixes = ["10.100.3.0/24"]
     }
   ]
-} 
+}
 
 
 module "vm" {
   source = "./modules/compute"
 
   resource_group_name = azurerm_resource_group.main.name
-  location           = azurerm_resource_group.main.location
-  subnet_id          = module.network.subnet_ids["firstsubnet"]
+  location            = azurerm_resource_group.main.location
+  subnet_id           = module.network.subnet_ids["firstsubnet"]
 
   vm_config = {
-    name                  = "my-vm"
-    size                  = "Standard_B1s"
+    name                 = "my-vm"
+    size                 = "Standard_B1s"
     admin_username       = "adminuser"
     admin_ssh_public_key = tls_private_key.ssh.public_key_openssh
     subnet_name          = "firstsubnet"

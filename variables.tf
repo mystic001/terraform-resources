@@ -13,7 +13,7 @@ variable "environment" {
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
-  default = "rg-group"
+  default     = "rg-group"
 }
 
 variable "tags" {
