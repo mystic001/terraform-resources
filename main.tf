@@ -57,3 +57,30 @@ module "network" {
     }
   ]
 } 
+
+
+module "vm" {
+  source = "./modules/compute"
+
+  resource_group_name = "my-rg"
+  location           = "eastus"
+  subnet_id          = module.network.azurerm_subnet.this["firstsubnet"].id
+
+  vm_config = {
+    name                  = "my-vm"
+    size                  = "Standard_B1s"
+    admin_username       = "adminuser"
+    admin_ssh_public_key = file("~/.ssh/id_rsa.pub")  # Path to your public SSH key
+    subnet_name          = "firstsubnet"
+    os_disk_type         = "Standard_LRS"
+    os_disk_size_gb      = 30
+    image_publisher      = "Canonical"
+    image_offer          = "UbuntuServer"
+    image_sku            = "18.04-LTS"
+    image_version        = "latest"
+  }
+
+  tags = {
+    Environment = "Development"
+  }
+}
