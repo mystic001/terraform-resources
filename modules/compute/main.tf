@@ -36,7 +36,7 @@ resource "azurerm_linux_virtual_machine" "this" {
 
   admin_ssh_key {
     username   = var.vm_config.admin_username
-    public_key = var.vm_config.admin_ssh_public_key
+    public_key = trimspace(var.vm_config.admin_ssh_public_key)
   }
 
   os_disk {

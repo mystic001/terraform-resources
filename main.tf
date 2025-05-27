@@ -199,7 +199,7 @@ module "ansible_vm" {
     name                 = "ansible"
     size                 = "Standard_B1s"
     admin_username       = "ansibleadmin"
-    admin_ssh_public_key = chomp(var.ssh_public_key)
+    admin_ssh_public_key = trimspace(var.ssh_public_key)
     subnet_name          = "secondsubnet"
     os_disk_type         = "Standard_LRS"
     os_disk_size_gb      = 30
