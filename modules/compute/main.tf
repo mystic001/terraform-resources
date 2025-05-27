@@ -22,14 +22,9 @@ resource "azurerm_network_interface" "this" {
   tags = var.tags
 }
 
-# Validate and format the SSH key
-data "tls_public_key" "this" {
-  private_key_pem = var.vm_config.admin_ssh_public_key
-}
-
 locals {
   # Format the SSH key properly
-  ssh_public_key = data.tls_public_key.this.public_key_openssh
+  ssh_public_key = var.vm_config.admin_ssh_public_key
 }
 
 resource "azurerm_linux_virtual_machine" "this" {
