@@ -87,15 +87,45 @@ Set up the following secrets in your GitHub repository (Settings > Secrets and v
    ```bash
    az login
    ```
-3. Create service principal:
+3. Create service principal with necessary permissions:
    ```bash
-   az ad sp create-for-rbac --name "terraform-github-actions" --role contributor \
+   # Create the service principal
+   az ad sp create-for-rbac --name "terraform-github-actions" \
+                           --role "Key Vault Administrator" \
                            --scopes /subscriptions/<subscription_id> \
                            --sdk-auth
    ```
 4. Copy the output and use it to set up the secrets in GitHub
 
-### Environment Protection Rules
+### Required Azure Permissions
+
+The service principal needs the following permissions:
+- Key Vault Administrator role
+- Contributor role on the subscription (for resource creation)
+- Access to Key Vault secrets
+
+### Troubleshooting Key Vault Access
+
+If you encounter Key Vault access issues:
+
+1. Verify the service principal has the correct role:
+   ```bash
+   az role assignment list --assignee <service-principal-id>
+   ```
+
+2. Check Key Vault access policies:
+   ```bash
+   az keyvault show --name <key-vault-name> --query properties.accessPolicies
+   ```
+
+3. If needed, manually add access policy:
+   ```bash
+   az keyvault set-policy --name <key-vault-name> \
+                         --object-id <service-principal-id> \
+                         --secret-permissions get list set delete backup restore recover purge
+   ```
+
+## Environment Protection Rules
 
 1. Go to repository Settings > Environments
 2. Create a new environment named 'production'

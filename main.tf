@@ -69,17 +69,16 @@ resource "azurerm_key_vault" "main" {
   tenant_id                   = var.tenant_id
   soft_delete_retention_days  = 7
   purge_protection_enabled    = true
-  sku_name                    = "premium"
+  sku_name                   = "premium"
 
   network_acls {
-    default_action = "Deny"
+    default_action = "Allow"  # Temporarily allow all access for setup
     bypass         = "AzureServices"
-    ip_rules       = var.key_vault_allowed_ips
   }
 
   access_policy {
     tenant_id = var.tenant_id
-    object_id = var.client_id
+    object_id = var.client_id  # Service Principal ID
 
     key_permissions = [
       "Get",
@@ -118,6 +117,13 @@ resource "azurerm_key_vault" "main" {
       "Purge"
     ]
   }
+}
+
+# Add RBAC role assignment for the service principal
+resource "azurerm_role_assignment" "key_vault_administrator" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = var.client_id  # Service Principal ID
 }
 
 # Generate random suffix for unique names
