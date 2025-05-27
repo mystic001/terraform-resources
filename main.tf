@@ -198,8 +198,8 @@ module "ansible_vm" {
   vm_config = {
     name                 = "ansible"
     size                 = "Standard_B1s"
-    admin_username       = "admin"
-    admin_ssh_public_key = var.ssh_public_key
+    admin_username       = "ansibleadmin"
+    admin_ssh_public_key = chomp(var.ssh_public_key)
     subnet_name          = "secondsubnet"
     os_disk_type         = "Standard_LRS"
     os_disk_size_gb      = 30
@@ -245,9 +245,9 @@ output "vm_connection_info" {
 output "ansible_vm_connection_info" {
   description = "Information to connect to the Ansible VM"
   value = {
-    username = "admin"
+    username = "ansibleadmin"
     host     = module.ansible_vm.vm_public_ip
-    command  = "ssh -i <private_key_file> admin@${module.ansible_vm.vm_public_ip}"
+    command  = "ssh -i <private_key_file> ansibleadmin@${module.ansible_vm.vm_public_ip}"
   }
   sensitive = true
 }
