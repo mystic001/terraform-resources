@@ -188,6 +188,30 @@ module "vm" {
   tags = var.tags
 }
 
+module "ansible_vm" {
+  source = "./modules/compute"
+
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  subnet_id           = module.network.subnet_ids["secondsubnet"]
+
+  vm_config = {
+    name                 = "ansible"
+    size                 = "Standard_B1s"
+    admin_username       = "admin"
+    admin_ssh_public_key = var.ssh_public_key
+    subnet_name          = "secondsubnet"
+    os_disk_type         = "Standard_LRS"
+    os_disk_size_gb      = 30
+    image_publisher      = "Canonical"
+    image_offer          = "UbuntuServer"
+    image_sku            = "18.04-LTS"
+    image_version        = "latest"
+  }
+
+  tags = var.tags
+}
+
 # Data source to retrieve the SSH key from Key Vault
 data "azurerm_key_vault_secret" "ssh_private_key" {
   name         = "ssh-private-key"
@@ -213,6 +237,17 @@ output "vm_connection_info" {
     username = "adminuser"
     host     = module.vm.vm_private_ip
     command  = "ssh -i <private_key_file> adminuser@${module.vm.vm_private_ip}"
+  }
+  sensitive = true
+}
+
+# Output the Ansible VM connection information
+output "ansible_vm_connection_info" {
+  description = "Information to connect to the Ansible VM"
+  value = {
+    username = "admin"
+    host     = module.ansible_vm.vm_public_ip
+    command  = "ssh -i <private_key_file> admin@${module.ansible_vm.vm_public_ip}"
   }
   sensitive = true
 }

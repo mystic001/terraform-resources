@@ -59,4 +59,10 @@ variable "key_vault_allowed_ips" {
   description = "List of IP addresses allowed to access the Key Vault"
   type        = list(string)
   default     = []
+}
+
+variable "ssh_public_key" {
+  description = "The SSH public key to use for VM authentication"
+  type        = string
+  sensitive   = true
 } 
