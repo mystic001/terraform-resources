@@ -68,8 +68,14 @@ resource "azurerm_key_vault" "main" {
   enabled_for_disk_encryption = true
   tenant_id                   = var.tenant_id
   soft_delete_retention_days  = 7
-  purge_protection_enabled    = false
-  sku_name                    = "standard"
+  purge_protection_enabled    = true
+  sku_name                    = "premium"
+
+  network_acls {
+    default_action = "Deny"
+    bypass         = "AzureServices"
+    ip_rules       = var.key_vault_allowed_ips
+  }
 
   access_policy {
     tenant_id = var.tenant_id
@@ -81,6 +87,11 @@ resource "azurerm_key_vault" "main" {
       "Create",
       "Delete",
       "Update",
+      "Import",
+      "Backup",
+      "Restore",
+      "Recover",
+      "Purge"
     ]
 
     secret_permissions = [
@@ -88,6 +99,23 @@ resource "azurerm_key_vault" "main" {
       "List",
       "Set",
       "Delete",
+      "Backup",
+      "Restore",
+      "Recover",
+      "Purge"
+    ]
+
+    certificate_permissions = [
+      "Get",
+      "List",
+      "Create",
+      "Delete",
+      "Update",
+      "Import",
+      "Backup",
+      "Restore",
+      "Recover",
+      "Purge"
     ]
   }
 }
@@ -150,13 +178,31 @@ module "vm" {
   tags = var.tags
 }
 
+# Data source to retrieve the SSH key from Key Vault
+data "azurerm_key_vault_secret" "ssh_private_key" {
+  name         = "ssh-private-key"
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on   = [azurerm_key_vault_secret.ssh_private_key]
+}
+
 # Output the private key (be careful with this in production)
 output "private_key" {
-  value     = tls_private_key.ssh.private_key_pem
+  value     = data.azurerm_key_vault_secret.ssh_private_key.value
   sensitive = true
 }
 
 # Output the public key
 output "public_key" {
   value = tls_private_key.ssh.public_key_openssh
+}
+
+# Output the VM connection information
+output "vm_connection_info" {
+  description = "Information to connect to the VM"
+  value = {
+    username = "adminuser"
+    host     = module.vm.vm_private_ip
+    command  = "ssh -i <private_key_file> adminuser@${module.vm.vm_private_ip}"
+  }
+  sensitive = true
 }

@@ -53,4 +53,10 @@ variable "vnet_address_space" {
   description = "The address space for the virtual network"
   type        = list(string)
   default     = ["10.100.0.0/16"]
+}
+
+variable "key_vault_allowed_ips" {
+  description = "List of IP addresses allowed to access the Key Vault"
+  type        = list(string)
+  default     = []
 } 
