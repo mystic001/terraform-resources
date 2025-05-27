@@ -60,62 +60,31 @@ resource "azurerm_key_vault_secret" "ssh_public_key" {
   key_vault_id = azurerm_key_vault.main.id
 }
 
+# Get the current service principal
+data "azurerm_client_config" "current" {}
+
+# Verify service principal permissions
+data "azurerm_role_definition" "key_vault_admin" {
+  name = "Key Vault Administrator"
+}
+
 # Create Key Vault
 resource "azurerm_key_vault" "main" {
   name                        = "kv-${var.environment}-${random_string.suffix.result}"
   location                    = azurerm_resource_group.main.location
   resource_group_name         = azurerm_resource_group.main.name
   enabled_for_disk_encryption = true
-  tenant_id                   = var.tenant_id
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
   purge_protection_enabled    = true
   sku_name                   = "premium"
 
+  # Enable RBAC authorization
+  enable_rbac_authorization = true
+
   network_acls {
     default_action = "Allow"  # Temporarily allow all access for setup
     bypass         = "AzureServices"
-  }
-
-  access_policy {
-    tenant_id = var.tenant_id
-    object_id = var.client_id  # Service Principal ID
-
-    key_permissions = [
-      "Get",
-      "List",
-      "Create",
-      "Delete",
-      "Update",
-      "Import",
-      "Backup",
-      "Restore",
-      "Recover",
-      "Purge"
-    ]
-
-    secret_permissions = [
-      "Get",
-      "List",
-      "Set",
-      "Delete",
-      "Backup",
-      "Restore",
-      "Recover",
-      "Purge"
-    ]
-
-    certificate_permissions = [
-      "Get",
-      "List",
-      "Create",
-      "Delete",
-      "Update",
-      "Import",
-      "Backup",
-      "Restore",
-      "Recover",
-      "Purge"
-    ]
   }
 }
 
@@ -123,7 +92,51 @@ resource "azurerm_key_vault" "main" {
 resource "azurerm_role_assignment" "key_vault_administrator" {
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Administrator"
-  principal_id         = var.client_id  # Service Principal ID
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+# Add explicit access policy for the service principal
+resource "azurerm_key_vault_access_policy" "service_principal" {
+  key_vault_id = azurerm_key_vault.main.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Get",
+    "List",
+    "Create",
+    "Delete",
+    "Update",
+    "Import",
+    "Backup",
+    "Restore",
+    "Recover",
+    "Purge"
+  ]
+
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Backup",
+    "Restore",
+    "Recover",
+    "Purge"
+  ]
+
+  certificate_permissions = [
+    "Get",
+    "List",
+    "Create",
+    "Delete",
+    "Update",
+    "Import",
+    "Backup",
+    "Restore",
+    "Recover",
+    "Purge"
+  ]
 }
 
 # Generate random suffix for unique names
